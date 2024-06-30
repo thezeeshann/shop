@@ -13,15 +13,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  name             String?
+  email            String    @unique
+  emailVerified    DateTime?
+  image            String?
+  password         String
+  accounts         Account[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  twoFactorEnabled Boolean   @default(false)
+  role             Role      @default(USER)
 }
 
 model Account {
@@ -43,4 +51,11 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([provider, providerAccountId])
+}
+
+model EmailVerificationToken {
+  id      String   @id @default(cuid())
+  token   String
+  expires DateTime
+  email   String
 }

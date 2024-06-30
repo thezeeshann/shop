@@ -1,11 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `Post` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropTable
-DROP TABLE "Post";
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -14,8 +8,11 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "emailVerified" TIMESTAMP(3),
     "image" TEXT,
+    "password" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "twoFactorEnabled" BOOLEAN NOT NULL DEFAULT false,
+    "role" "Role" NOT NULL DEFAULT 'USER',
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -37,6 +34,16 @@ CREATE TABLE "Account" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Account_pkey" PRIMARY KEY ("provider","providerAccountId")
+);
+
+-- CreateTable
+CREATE TABLE "EmailVerificationToken" (
+    "id" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
+    "email" TEXT NOT NULL,
+
+    CONSTRAINT "EmailVerificationToken_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
