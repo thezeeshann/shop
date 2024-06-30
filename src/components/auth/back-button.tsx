@@ -1,4 +1,5 @@
-import { Link } from "lucide-react";
+
+import Link from "next/link";
 import { Button } from "../ui/button";
 
 type BackButtonProps = {
@@ -8,7 +9,7 @@ type BackButtonProps = {
 
 const BackButton = ({ href, label }: BackButtonProps) => {
   return (
-    <Button variant={"outline"} className="font-medium w-full" >
+    <Button asChild  variant={"link"} className="font-medium w-full" >
       <Link aria-label={label} href={href}>
         {label}
       </Link>

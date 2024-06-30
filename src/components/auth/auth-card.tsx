@@ -4,16 +4,17 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import Socials from "./socials";
 import BackButton from "./back-button";
 
 type AuthCardProps = {
-  children: React.ReactNode;
-  cardTitle: string;
-  backButtonHref: string;
-  backButtonLabel: string;
-  showSocials?: Boolean;
+  children: React.ReactNode
+  cardTitle: string
+  backButtonHref: string
+  backButtonLabel: string
+  showSocials?: boolean
 };
 
 const AuthCard = ({
@@ -24,12 +25,14 @@ const AuthCard = ({
   showSocials,
 }: AuthCardProps) => {
   return (
-    <Card>
-      <CardHeader>{cardTitle}</CardHeader>
+    <Card className="w-[500px] mx-auto">
+      <CardHeader>
+        <CardTitle>{cardTitle}</CardTitle>
+      </CardHeader>
       <CardContent>{children}</CardContent>
       {showSocials && (
-        <CardFooter>
-          <Socials />
+        <CardFooter >
+          <Socials  />
         </CardFooter>
       )}
       <CardFooter>

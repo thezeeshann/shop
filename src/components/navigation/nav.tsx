@@ -3,18 +3,22 @@ import { auth } from "@/lib/auth";
 import UserButton from "./user-button";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import Logo from "@/public/logo.svg";
+import Logo from "./logo";
 
 const nav = async () => {
   const session = await auth();
 
   return (
-    <header>
+    <header className="py-4">
       <nav>
-        <ul className="border-2 border-red-500 flex flex-row justify-between">
-          <li>Logo</li>
+        <ul className="items-center  flex flex-row justify-between">
+          <li>
+          <Link href="/" >
+            <Logo/>
+          </Link>
+          </li>
           {!session ? (
-            <Button asChild>
+            <Button asChild size={"sm"}>
               <Link href="/auth/login">
                 {" "}
                 <span>Login</span>
