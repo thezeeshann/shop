@@ -59,3 +59,17 @@ model EmailVerificationToken {
   expires DateTime
   email   String
 }
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  token   String
+  expires DateTime
+  email   String
+}
+
+model TwoFactorToken {
+  id      String   @id @default(cuid())
+  token   String
+  expires DateTime
+  email   String
+}
