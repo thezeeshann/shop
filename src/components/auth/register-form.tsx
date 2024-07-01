@@ -46,7 +46,6 @@ const RegisterForm = () => {
 
   const onSubmit = (values: z.infer<typeof registerSchema>) => {
     execute(values);
-    console.log(values)
   };
 
   return (

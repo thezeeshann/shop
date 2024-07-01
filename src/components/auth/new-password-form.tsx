@@ -14,69 +14,51 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { loginSchema } from "@/lib/validations/login";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { emailSignIn } from "@/actions/login";
 import { useAction } from "next-safe-action/hooks";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import FormSuccess from "./form-success";
 import FormError from "./form-error";
+import { newPasswordSchema } from "@/lib/validations/password";
+import { newPassword } from "@/actions/password";
+import { useSearchParams } from "next/navigation";
 
-const LoginForm = () => {
+const NewPasswordForm = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  const form = useForm({
-    resolver: zodResolver(loginSchema),
+  const searchParams = useSearchParams()
+  const token = searchParams.get("token")
+  const form = useForm<z.infer<typeof newPasswordSchema>>({
+    resolver: zodResolver(newPasswordSchema),
     defaultValues: {
-      email: "",
       password: "",
     },
   });
 
-  const { status, execute } = useAction(emailSignIn, {
+  const { status, execute } = useAction(newPassword, {
     onSuccess(data) {
       if (data.data?.error) setError(data.data.error);
       if (data.data?.success) setSuccess(data.data.success);
     },
   });
 
-  const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    execute(values);
+  const onSubmit = (values: z.infer<typeof newPasswordSchema>) => {
+    execute({...values,token});
   };
 
   return (
     <AuthCard
-      cardTitle="Welcome Back!"
-      backButtonHref="/auth/register"
-      backButtonLabel="Create a new account"
+      cardTitle="Enter a new passwrod!"
+      backButtonHref="/auth/login"
+      backButtonLabel="Back to login"
       showSocials
     >
       <div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div>
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Email"
-                        {...field}
-                        type="email"
-                        autoComplete="email"
-                      />
-                    </FormControl>
-                    <FormDescription />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="password"
@@ -107,7 +89,7 @@ const LoginForm = () => {
                 status === "executing" ? "animate-pulse" : ""
               )}
             >
-              Login
+              Reset Password
             </Button>
           </form>
         </Form>
@@ -116,4 +98,4 @@ const LoginForm = () => {
   );
 };
 
-export default LoginForm;
+export default NewPasswordForm;
