@@ -31,6 +31,7 @@ import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { useAction } from "next-safe-action/hooks";
 import { settings } from "@/actions/settings";
+import { UploadButton } from "@/app/api/uploadthing/uploadthing";
 
 type SettingsCardProp = {
   session: Session;
@@ -40,6 +41,7 @@ const SettingsCard = ({ session }: SettingsCardProp) => {
   console.log(session);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false)
 
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -61,7 +63,7 @@ const SettingsCard = ({ session }: SettingsCardProp) => {
   });
 
   const onSubmit = (values: z.infer<typeof settingsSchema>) => {
-    console.log(values)
+    console.log(values);
     execute(values);
   };
 
@@ -83,7 +85,7 @@ const SettingsCard = ({ session }: SettingsCardProp) => {
                   <FormControl>
                     <Input placeholder="Name" {...field} />
                   </FormControl>
-                 
+
                   <FormMessage />
                 </FormItem>
               )}
@@ -122,6 +124,33 @@ const SettingsCard = ({ session }: SettingsCardProp) => {
                         alt="User Image"
                       />
                     )}
+
+                    <UploadButton
+                      className="scale-75 ut-button:ring-primary  ut-label:bg-red-50  ut-button:bg-primary/75  hover:ut-button:bg-primary/100 ut:button:transition-all ut-button:duration-500  ut-label:hidden ut-allowed-content:hidden"
+                      endpoint="avatarUploader"
+                      onUploadBegin={() => {
+                        setAvatarUploading(true);
+                      }}
+                      onUploadError={(error) => {
+                        form.setError("image", {
+                          type: "validate",
+                          message: error.message,
+                        });
+                        setAvatarUploading(false);
+                        return;
+                      }}
+                      onClientUploadComplete={(res) => {
+                        form.setValue("image", res[0].url!);
+                        setAvatarUploading(false);
+                        return;
+                      }}
+                      content={{
+                        button({ ready }) {
+                          if (ready) return <div>Change Avatar</div>;
+                          return <div>Uploading...</div>;
+                        },
+                      }}
+                    />
                   </div>
                   <FormControl>
                     <Input
@@ -165,9 +194,7 @@ const SettingsCard = ({ session }: SettingsCardProp) => {
                   <FormControl>
                     <Input
                       placeholder="*******"
-                      disabled={
-                        status === "executing" || session?.user.isOAuth
-                      }
+                      disabled={status === "executing" || session?.user.isOAuth}
                       {...field}
                     />
                   </FormControl>
@@ -188,8 +215,7 @@ const SettingsCard = ({ session }: SettingsCardProp) => {
                   <FormControl>
                     <Switch
                       disabled={
-                        status === "executing" ||
-                        session.user.isOAuth === true
+                        status === "executing" || session.user.isOAuth === true
                       }
                       checked={field.value}
                       onCheckedChange={field.onChange}
