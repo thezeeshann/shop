@@ -19,17 +19,18 @@ enum Role {
 }
 
 model User {
-  id               String    @id @default(cuid())
+  id               String           @id @default(cuid())
   name             String?
-  email            String    @unique
+  email            String           @unique
   emailVerified    DateTime?
   image            String?
-  password         String
+  password         String?
   accounts         Account[]
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  twoFactorEnabled Boolean   @default(false)
-  role             Role      @default(USER)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  twoFactorEnabled Boolean          @default(false)
+  role             Role             @default(USER)
+  TwoFactorToken   TwoFactorToken[]
 }
 
 model Account {
@@ -72,4 +73,7 @@ model TwoFactorToken {
   token   String
   expires DateTime
   email   String
+  userId  String
+  user    User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
