@@ -3,8 +3,12 @@
 import prisma from "@/lib/db";
 import { loginSchema } from "@/lib/validations/login";
 import { createSafeActionClient } from "next-safe-action";
-import { generateEmailVerificationToken } from "./token";
-import { sendVerificationEmail } from "./email";
+import {
+  generateEmailVerificationToken,
+  generateTwoFactorToken,
+  getTwoFactorTokenByEmail,
+} from "./token";
+import { sendTwoFactorTokenByEmail, sendVerificationEmail } from "./email";
 import { signIn } from "@/lib/auth";
 import { AuthError } from "next-auth";
 import bcrypt from "bcrypt";
@@ -13,7 +17,7 @@ const action = createSafeActionClient();
 
 export const emailSignIn = action
   .schema(loginSchema)
-  .action(async ({ parsedInput: { email, password } }) => {
+  .action(async ({ parsedInput: { email, password, code } }) => {
     try {
       const existUser = await prisma.user.findFirst({
         where: {
@@ -25,6 +29,12 @@ export const emailSignIn = action
         return {
           error: "Email not found",
         };
+      }
+
+      if(!existUser){
+        return {
+          error:"User not found"
+        }
       }
 
       if (!existUser?.emailVerified) {
@@ -43,6 +53,37 @@ export const emailSignIn = action
         return {
           error: "Email or Password Incorrect",
         };
+      }
+
+      if (existUser.twoFactorEnabled && existUser.email) {
+        if (code) {
+          const twoFactorToken = await getTwoFactorTokenByEmail(
+            existUser.email
+          );
+          if (!twoFactorToken) {
+            return { error: "Invalid Token" };
+          }
+          if (twoFactorToken.token !== code) {
+            return { error: "Invalid Token" };
+          }
+          const hasExpired = new Date(twoFactorToken.expires) < new Date();
+          if (hasExpired) {
+            return { error: "Token has expired" };
+          }
+          await prisma.twoFactorToken.delete({
+            where: {
+              id: twoFactorToken.id,
+            },
+          });
+        } else {
+          const existToken = await generateTwoFactorToken(existUser.email);
+          if (!existToken) {
+            return { error: "Token not generated!" };
+          }
+          const { email, token } = existToken;
+          await sendTwoFactorTokenByEmail(email, token);
+          return { twoFactor: "Two Factor Token Sent!" };
+        }
       }
 
       await signIn("credentials", {

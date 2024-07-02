@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/db";
 import { PasswordResetToken } from "@prisma/client";
+import crypto from "crypto";
 
 export const getVerficatonTokenByEmail = async (token: string) => {
   try {
@@ -108,7 +109,9 @@ export const getPasswordResetTokenByEmail = async (email: string) => {
   }
 };
 
-export const generatePasswordResetToken = async (email: string): Promise<PasswordResetToken | Error> => {
+export const generatePasswordResetToken = async (
+  email: string
+): Promise<PasswordResetToken | Error> => {
   try {
     const token = crypto.randomUUID();
     const expires = new Date(new Date().getTime() + 3600 * 1000);
@@ -130,7 +133,71 @@ export const generatePasswordResetToken = async (email: string): Promise<Passwor
     });
 
     return passwordResetToken;
+  } catch {
+    return null;
+  }
+};
+
+export const getTwoFactorTokenByEmail = async (email: string) => {
+  try {
+    const twoFactorToken = await prisma.twoFactorToken.findFirst({
+      where: {
+        email: email,
+      },
+    });
+
+    return twoFactorToken;
+  } catch {
+    return null;
+  }
+};
+
+export const getTwoFactorTokenByToken = async (token: string) => {
+  try {
+    const twoFactorToken = await prisma.twoFactorToken.findFirst({
+      where: {
+        token: token,
+      },
+    });
+
+    return twoFactorToken;
   } catch (error) {
-    return error;
+    return {
+      error: error,
+    };
+  }
+};
+
+export const generateTwoFactorToken = async (email: string) => {
+  try {
+    const token = crypto.randomInt(100_000, 1_000_000).toString();
+    const expires = new Date(new Date().getTime() + 3600 * 1000);
+    const existingToken = await getTwoFactorTokenByEmail(email);
+    if (existingToken) {
+      await prisma.twoFactorToken.delete({
+        where: {
+          id: existingToken.id,
+        },
+      });
+    }
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new Error(`User with email ${email} not found`);
+    }
+
+    const twoFactorToken = await prisma.twoFactorToken.create({
+      data: {
+        email,
+        expires,
+        token,
+        userId: user.id,
+      },
+    });
+    return twoFactorToken;
+  } catch (e) {
+    return null;
   }
 };
